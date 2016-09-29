@@ -8,6 +8,9 @@ function QuizController(quizMetrics,dataService){
 	vm.questionAnswered=questionAnswered;
 	vm.setActiveQuestion=setActiveQuestion;
 	vm.selectAnswer = selectAnswer;
+	vm.error=false;
+	vm.finalise=false;
+	vm.finaliseAnswers=finaliseAnswers;
 
 	var numQuestionsAnswered=0;
 	function questionAnswered(){
@@ -16,6 +19,15 @@ function QuizController(quizMetrics,dataService){
 			numQuestionsAnswered++;
 			if(numQuestionsAnswered >= quizLength){
 				//finalise Quiz
+				for (var i = 0; i < quizLength; i++) {
+					if(dataService.quizQuestions[i].selected === null){
+						setActiveQuestion(i);
+						return;
+					}
+				}
+				vm.error=false;
+				vm.finalise=true;
+				return;
 			}
 		}
 		vm.setActiveQuestion()
@@ -28,6 +40,9 @@ function QuizController(quizMetrics,dataService){
 
 			while(!breakOut){
 				vm.activeQuestion = vm.activeQuestion < quizLength ? ++vm.activeQuestion:0;
+				if(vm.activeQuestion === 0){
+					vm.error = true;
+				}
 				if(dataService.quizQuestions[vm.activeQuestion].selected === null){
 					breakOut = true;
 				}
@@ -41,5 +56,13 @@ function QuizController(quizMetrics,dataService){
 	function selectAnswer(index){
 		console.log(index);
 		dataService.quizQuestions[vm.activeQuestion].selected = index;
+	}
+	function finaliseAnswers(){
+		vm.finalise=false;
+		numQuestionsAnswered=0;
+		vm.activeQuestion=0;
+		quizMetrics.markQuiz();
+		quizMetrics.changeState("quiz",false);
+		quizMetrics.changeState("results",true);
 	}
 }
